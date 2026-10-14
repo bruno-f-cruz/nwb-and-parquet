@@ -7,6 +7,25 @@ conversion is lossless. Each function's docstring explains its scenario and
 the observed preservation, loss, or rejection, followed by the relevant
 specification rules, adapter choices, and links to primary documentation.
 
+Every test docstring has a **Fidelity** annotation for Parquet, NWB-HDF5, and
+NWB-Zarr. The labels apply to that test's inputs, adapter, options, and assertions:
+
+- **LOSSLESS**: the named values or metadata survive; this is not a claim about
+  every property of a DataFrame.
+- **LOSSY VALUES / METADATA / STRUCTURE / SEMANTICS**: identifies information
+  that cannot be recovered, with the loss attributed to its specific step.
+- **CONVENTION**: storage layout or reader representation differs while the
+  named information survives, such as lists becoming arrays.
+- **UNSUPPORTED / INVALID SCHEMA**: conversion is rejected or the written
+  object is invalid; a failed conversion is not labelled as a lossy round trip.
+- **NOT TESTED / NOT APPLICABLE**: no fidelity claim for that format in the test.
+
+A test can have multiple labels: retained values can coexist with lost dtype
+metadata, and convention changes can accompany loss of the original index name.
+The stale-metadata example uses **CACHE MISMATCH** because the information still
+exists on disk but a reader selects an outdated snapshot. `--describe` displays
+these annotations together with the existing explanations and source links.
+
 ## Run
 
 ```powershell

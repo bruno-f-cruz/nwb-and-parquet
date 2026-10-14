@@ -21,6 +21,11 @@ from .helpers import (nwb_file, nwb_roundtrip, open_raw_zarr,
 def test_zarr_numeric_arrays_match_nwb_reader_and_source(tmp_path, dtype):
     """Given a numeric DataFrame, compare raw Zarr and reconstructed NWB columns.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS values/dtypes/shapes and ids; raw Zarr and NWB reader agree.
+
     Expected: source, zarr.Array, and NWB VectorData have identical values,
     dtype, and shape. Integer ids also agree and NWB schema validation passes.
     Why: Zarr v3 zarr.json records dtype, shape, and chunk layout;
@@ -54,6 +59,11 @@ def test_zarr_numeric_arrays_match_nwb_reader_and_source(tmp_path, dtype):
 def test_zarr_large_uint64_nan_and_signed_zero_match_nwb_reader(tmp_path):
     """Given uint64 extremes and float special values, compare both reader layers.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS for asserted integers, float special values, dtypes, and signed zero; readers agree.
+
     Expected: no integer rounding; NaN, infinities, and negative zero survive.
     Why: dtype-preserving chunk storage does not route uint64 through float64.
     Zarr fill_value describes unwritten chunks; it is not a pandas null bitmap.
@@ -76,6 +86,11 @@ def test_zarr_large_uint64_nan_and_signed_zero_match_nwb_reader(tmp_path):
 
 def test_zarr_unicode_codec_values_match_nwb_reader(tmp_path):
     """Given accented, CJK, and empty strings, compare decoded text in both readers.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS text values; CONVENTION: raw StringDType versus HDMF object-dtype view.
 
     Expected: decoded labels equal the source, but the array
     dtype in v3 differs: raw StringDType versus HDMF's object-dtype string view.
@@ -100,6 +115,11 @@ def test_zarr_unicode_codec_values_match_nwb_reader(tmp_path):
 
 def test_zarr_ragged_offsets_reconstruct_the_same_rows_as_nwb(tmp_path):
     """Given ragged cells, reconstruct rows manually from raw Zarr arrays.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS row values; CONVENTION: raw flattened values/endpoints require NWB row reconstruction.
 
     Expected: raw flattened values and exclusive cumulative endpoints match
     NWB VectorData/VectorIndex, and slicing them reproduces every source row.
@@ -137,6 +157,11 @@ def test_zarr_ragged_offsets_reconstruct_the_same_rows_as_nwb(tmp_path):
 def test_zarr_matrix_shape_matches_nwb_reader(tmp_path):
     """Given equal-length list cells, compare the default NWB matrix representation.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS matrix and row values; CONVENTION: equal-length lists use trailing array dimensions.
+
     Expected: both readers expose a (2, 2) payload without a VectorIndex;
     NWB DataFrame rows match the source lists numerically.
     Why: VectorData may have trailing dimensions. The default HDMF inference
@@ -160,6 +185,11 @@ def test_zarr_matrix_shape_matches_nwb_reader(tmp_path):
 def test_zarr_categorical_payload_agrees_but_does_not_restore_schema(tmp_path):
     """Given ordered categories with an unused label, compare payload and schema.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for categorical labels, ordering, and unused categories.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
+
     Expected: both Zarr reader layers keep labels but neither restores category
     ordering or the unused label; Parquet via Arrow retains pandas category dtype.
     Why: our HDMF adapter emits plain VectorData, not an EnumData representation
@@ -180,6 +210,11 @@ def test_zarr_categorical_payload_agrees_but_does_not_restore_schema(tmp_path):
 
 def test_zarr_timeseries_data_timestamps_and_units_match_nwb_reader(tmp_path):
     """Given a DataFrame with voltage units, explicitly build a TimeSeries.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS asserted values/units; CONVENTION: explicit TimeSeries mapping makes raw attrs scientific fields.
 
     Expected: raw arrays and their unit attrs equal the NWB reader's payload
     and unit properties; schema validation succeeds and source values survive.
@@ -213,6 +248,11 @@ def test_zarr_timeseries_data_timestamps_and_units_match_nwb_reader(tmp_path):
 
 def test_zarr_table_reference_positions_and_target_match_nwb_reader(tmp_path):
     """Given related DataFrames, explicitly map row positions to DynamicTableRegion.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS positions and target identity; CONVENTION: JSON references are resolved into NWB objects.
 
     Expected: raw positions equal NWB positions, and HDMF's stored target link
     resolves to the same target ids and quality values exposed by raw Zarr.
@@ -255,6 +295,11 @@ def test_zarr_table_reference_positions_and_target_match_nwb_reader(tmp_path):
 def test_hdf5_and_zarr_backends_recover_the_same_table(tmp_path):
     """Given mixed numeric/text columns, compare NWB HDF5 and Zarr recovery.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: LOSSLESS numeric values/dtypes and text values; CONVENTION: object text becomes pandas StringDtype.
+        NWB-Zarr: LOSSLESS numeric values/dtypes and text values; CONVENTION: object text becomes pandas StringDtype.
+
     Expected: both stores recover identical DataFrames and source values.
     HDMF/pandas infer StringDtype from object text; numeric dtypes stay unchanged.
     Why: NWB's logical DynamicTable schema is shared; HDF5 datasets and
@@ -278,6 +323,11 @@ def test_hdf5_and_zarr_backends_recover_the_same_table(tmp_path):
 @pytest.mark.parametrize("consolidated", [False, True], ids=["ordinary-metadata", "consolidated-metadata"])
 def test_zarr_metadata_modes_match_nwb_reader(tmp_path, consolidated):
     """Given a DataFrame, write with and without consolidated Zarr metadata.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSLESS asserted values/metadata; CONVENTION: consolidated versus ordinary metadata access.
 
     Expected: ordinary zarr reads match NWBZarrIO values and table metadata;
     a consolidated snapshot, when written, agrees with ordinary metadata too.
@@ -312,6 +362,11 @@ def test_zarr_metadata_modes_match_nwb_reader(tmp_path, consolidated):
 
 def test_stale_consolidated_zarr_metadata_can_disagree_with_nwb_reader(tmp_path):
     """Given a store, edit table description without refreshing its metadata snapshot.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: CONVENTION/CACHE MISMATCH: stale snapshot hides an attr edit; no payload loss; reconsolidation restores agreement.
 
     Expected: ordinary zarr sees the edit; default NWBZarrIO and consolidated
     zarr see the old description. NWBZarrIO r- also sees the snapshot because

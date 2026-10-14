@@ -12,6 +12,11 @@ from .helpers import assert_values_equal, nwb_roundtrip, parquet_roundtrip
 def test_numpy_is_newer_than_two():
     """Require NumPy > 2.0 so these observations use the requested array stack.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT APPLICABLE: environment precondition.
+        NWB-HDF5: NOT APPLICABLE: environment precondition.
+        NWB-Zarr: NOT APPLICABLE: environment precondition.
+
     Why (specification versus adapter):
         This is an environment precondition, not a storage-format rule. NumPy dtypes
         are the starting point for Arrow physical/logical types and NWB typed arrays.
@@ -25,6 +30,11 @@ def test_numpy_is_newer_than_two():
 def test_int8_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy int8 column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
 
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
@@ -48,6 +58,11 @@ def test_int64_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy int64 column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
         BOOLEAN, FLOAT, and DOUBLE. HDMF stores typed VectorData; Zarr records
@@ -69,6 +84,11 @@ def test_int64_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
 def test_uint64_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy uint64 column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
 
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
@@ -92,6 +112,11 @@ def test_float32_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy float32 column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
         BOOLEAN, FLOAT, and DOUBLE. HDMF stores typed VectorData; Zarr records
@@ -113,6 +138,11 @@ def test_float32_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
 def test_float64_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy float64 column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
 
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
@@ -136,6 +166,11 @@ def test_bool_values_and_dtype_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip a NumPy bool column. Both formats preserve its values and
     dtype; NWB normalizes the row index to id.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+
     Why (specification versus adapter):
         Parquet has integer physical types with width/signedness annotations,
         BOOLEAN, FLOAT, and DOUBLE. HDMF stores typed VectorData; Zarr records
@@ -158,6 +193,11 @@ def test_large_unsigned_integers_do_not_pass_through_float(tmp_path, nwb_roundtr
     """Round-trip uint64 values above 2**53 through both formats. Both retain
     exact values and uint64 dtype, including 2**64 - 1.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the asserted numeric values and dtypes.
+        NWB-HDF5: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+        NWB-Zarr: LOSSLESS for values/dtypes; CONVENTION: row index normalized to NWB id.
+
     Why (specification versus adapter):
         Parquet annotates INT64 with unsigned 64-bit semantics; NWB stores uint64
         arrays in either backend. Float64 cannot represent all these values, but
@@ -176,6 +216,11 @@ def test_large_unsigned_integers_do_not_pass_through_float(tmp_path, nwb_roundtr
 def test_nan_infinities_and_signed_zero_survive(tmp_path, nwb_roundtrip):
     """Round-trip float NaN, infinities, and negative zero. Both readers preserve
     these values, including the sign bit of negative zero.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS recovered floating values and signed zero; NaN/null storage convention is not checked.
+        NWB-HDF5: LOSSLESS for asserted NaN, infinities, and signed zero.
+        NWB-Zarr: LOSSLESS for asserted NaN, infinities, and signed zero.
 
     Why (specification versus adapter):
         IEEE floating payloads encode these values. Arrow may map pandas NaN to
@@ -196,6 +241,11 @@ def test_nwb_loses_index_name_but_keeps_integer_ids(tmp_path, nwb_roundtrip):
     """Compare a named integer index. Parquet keeps its name and values; the NWB
     adapter renames the index to id for schema validity while keeping its values.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the named index and values.
+        NWB-HDF5: LOSSY METADATA: original index name lost; CONVENTION: ids use the required name id.
+        NWB-Zarr: LOSSY METADATA: original index name lost; CONVENTION: ids use the required name id.
+
     Why (specification versus adapter):
         DynamicTable requires integer ElementIdentifiers named id. Our adapter
         renames the axis without a restoration sidecar. A pandas index name is
@@ -215,6 +265,11 @@ def test_nwb_loses_index_name_but_keeps_integer_ids(tmp_path, nwb_roundtrip):
 def test_categorical_labels_survive_nwb_but_category_schema_does_not(tmp_path, nwb_roundtrip):
     """Compare an ordered categorical with an unused category. Parquet restores
     the full categorical schema; NWB keeps labels but loses categories and order.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for categorical labels, ordering, and unused categories.
+        NWB-HDF5: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
+        NWB-Zarr: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
 
     Why (specification versus adapter):
         Our NWB adapter emits ordinary VectorData labels, not EnumData or a dtype
@@ -238,6 +293,11 @@ def test_nullable_integer_without_nulls_loses_extension_dtype_in_nwb(tmp_path, n
     """Compare pandas Int64 without nulls. Parquet restores the extension dtype;
     NWB restores NumPy int64 with the same values.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS including the pandas Int64 extension dtype.
+        NWB-HDF5: LOSSY METADATA: Int64 extension dtype becomes NumPy int64; values are lossless.
+        NWB-Zarr: LOSSY METADATA: Int64 extension dtype becomes NumPy int64; values are lossless.
+
     Why (specification versus adapter):
         pandas Int64 is an extension dtype, distinct from NumPy int64. VectorData
         stores integers without a pandas dtype descriptor; Arrow's metadata enables
@@ -258,6 +318,11 @@ def test_nullable_integer_with_null_is_rejected_by_default_nwb_mapping(tmp_path,
     """Compare nullable Int64 with a missing value. Parquet preserves the column;
     the default NWB mapping rejects the mixed integer/NA representation.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS including missing values and Int64 dtype.
+        NWB-HDF5: UNSUPPORTED: the default adapter rejects pandas.NA; no completed round trip.
+        NWB-Zarr: UNSUPPORTED: the default adapter rejects pandas.NA; no completed round trip.
+
     Why (specification versus adapter):
         Parquet definition levels represent nulls separately from integer values.
         Plain VectorData has no validity-mask column in our mapping and cannot
@@ -277,6 +342,11 @@ def test_string_index_is_supported_by_parquet_but_not_nwb_integer_ids(tmp_path, 
     """Compare string row labels. Parquet restores them; the NWB integer-id
     mapping rejects them instead of silently replacing the labels.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS including string index labels.
+        NWB-HDF5: UNSUPPORTED: string labels cannot directly serve as NWB integer ids.
+        NWB-Zarr: UNSUPPORTED: string labels cannot directly serve as NWB integer ids.
+
     Why (specification versus adapter):
         ElementIdentifiers requires integers. String labels need a separate NWB
         column plus integer ids. Arrow stores string index values as a column
@@ -295,6 +365,11 @@ def test_string_index_is_supported_by_parquet_but_not_nwb_integer_ids(tmp_path, 
 def test_datetime_column_needs_an_explicit_nwb_encoding(tmp_path):
     """Compare a datetime column. Parquet restores it; NWB's HDF5 write fails
     because this default mapping has no numpy.datetime64 encoding.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the datetime column.
+        NWB-HDF5: UNSUPPORTED: h5py rejects the default datetime64 mapping at write time.
+        NWB-Zarr: NOT TESTED in this test.
 
     Why (specification versus adapter):
         This specifically targets h5py's missing numpy.datetime64 mapping. Parquet
@@ -318,6 +393,11 @@ def test_complex_column_rejected_by_both_default_mappings(tmp_path, nwb_roundtri
     """Attempt a complex128 column. HDMF and PyArrow both reject the default
     representation; HDMF wraps its underlying ValueError.
 
+    Fidelity (this test and adapter):
+        Parquet: UNSUPPORTED: PyArrow rejects the direct complex column.
+        NWB-HDF5: UNSUPPORTED: HDMF rejects complex values before storage.
+        NWB-Zarr: UNSUPPORTED: HDMF rejects complex values before storage.
+
     Why (specification versus adapter):
         Parquet defines no standard complex logical type, so Arrow rejects this
         direct column. HDMF rejects complex values before either backend writes;
@@ -338,6 +418,11 @@ def test_complex_column_rejected_by_both_default_mappings(tmp_path, nwb_roundtri
 def test_ragged_values_survive_both_with_explicit_nwb_vector_index(tmp_path, nwb_roundtrip):
     """Round-trip lists of unequal lengths, with an explicit NWB ragged hint.
     Both retain values and empty cells but recover list cells as NumPy arrays.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS row values; CONVENTION: list cells are recovered as NumPy arrays.
+        NWB-HDF5: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+        NWB-Zarr: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
 
     Why (specification versus adapter):
         HDMF uses flattened VectorData with cumulative-end VectorIndex. Parquet
@@ -361,6 +446,11 @@ def test_unequal_length_lists_are_automatically_detected_as_ragged(tmp_path, nwb
     """Round-trip unequal-length lists without hints. HDMF automatically creates
     a ragged representation and preserves each row's values.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+        NWB-Zarr: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+
     Why (specification versus adapter):
         VectorData/VectorIndex specify ragged storage; inferring it from list
         lengths is HDMF from_dataframe behavior. HDF5 and Zarr then store the same
@@ -378,6 +468,11 @@ def test_unequal_length_lists_are_automatically_detected_as_ragged(tmp_path, nwb
 def test_parquet_struct_inference_adds_missing_keys(tmp_path):
     """Round-trip dictionaries with different keys through Parquet. Struct
     inference inserts absent keys with null values, changing the dictionaries.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSY STRUCTURE: absent dictionary keys become explicit null keys; original key presence is lost.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: NOT TESTED in this test.
 
     Why (specification versus adapter):
         Arrow infers a fixed struct schema using the union of keys. Parquet stores
@@ -398,6 +493,11 @@ def test_parquet_struct_inference_adds_missing_keys(tmp_path):
 def test_none_and_nan_collapse_to_one_parquet_null_representation(tmp_path):
     """Round-trip an object column distinguishing None from NaN. Arrow maps both
     to null; recovery uses float64 NaN and loses the original distinction.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSY VALUES/METADATA: None versus NaN distinction and object dtype are lost.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: NOT TESTED in this test.
 
     Why (specification versus adapter):
         Arrow maps both Python None and NaN to null in this pandas conversion.
@@ -420,6 +520,11 @@ def test_timestamp_truncation_is_rejected_unless_explicitly_authorized(tmp_path)
     """Compare exact and microsecond-coerced Parquet timestamps. Exact writes
     preserve nanoseconds; coercion rejects loss unless opted in, then loses 123 ns.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS by default; coercion rejects loss unless opted in; opt-in is LOSSY VALUES (123 ns discarded).
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         TIMESTAMP supports millisecond, microsecond, and nanosecond units. Explicit
         PyArrow coercion changes units and rejects discarded nonzero digits by
@@ -440,6 +545,11 @@ def test_timestamp_truncation_is_rejected_unless_explicitly_authorized(tmp_path)
 def test_parquet_without_pandas_metadata_loses_nullable_dtype_and_index_role(tmp_path):
     """Remove pandas metadata before writing Parquet. The index returns as an
     ordinary column and nullable Int64 becomes float64, though ids survive.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSY METADATA: nullable dtype and index role lost after metadata removal; ids survive as a column.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: NOT TESTED in this test.
 
     Why (specification versus adapter):
         Parquet columns do not define a pandas index role or extension dtype.
@@ -464,6 +574,11 @@ def test_parquet_without_pandas_metadata_loses_nullable_dtype_and_index_role(tmp
 def test_float_workaround_for_nullable_integers_loses_large_integer_precision(tmp_path, nwb_roundtrip):
     """Cast nullable integers to float to permit NWB writing. The adapter already
     rounds 2**53 + 1 to 2**53; NWB retains that rounded float, not the source integer.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for the original nullable integers.
+        NWB-HDF5: LOSSY VALUES relative to source: adapter rounds before writing; stored floats themselves are preserved.
+        NWB-Zarr: LOSSY VALUES relative to source: adapter rounds before writing; stored floats themselves are preserved.
 
     Why (specification versus adapter):
         IEEE float64 has 53 bits of integer precision. This preprocessing rounds
@@ -490,6 +605,11 @@ def test_timezone_and_nanosecond_timestamp_survive_parquet(tmp_path):
     """Round-trip timezone-aware nanosecond timestamps through Parquet. Values,
     precision, and America/Los_Angeles timezone are retained.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS including timezone and nanosecond precision with this PyArrow reader.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         TIMESTAMP records precision and UTC-adjusted semantics, not an IANA zone
         identifier. PyArrow's stored Arrow schema restores America/Los_Angeles.
@@ -508,6 +628,11 @@ def test_timezone_and_nanosecond_timestamp_survive_parquet(tmp_path):
 def test_multiindex_survives_parquet_but_needs_remapping_for_nwb(tmp_path, nwb_roundtrip):
     """Compare a two-level index. Parquet restores it; the NWB adapter fails
     during its single-axis id normalization, before serialization.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS including both index levels.
+        NWB-HDF5: UNSUPPORTED by this adapter: axis normalization fails before serialization.
+        NWB-Zarr: UNSUPPORTED by this adapter: axis normalization fails before serialization.
 
     Why (specification versus adapter):
         Arrow serializes index levels as columns and records pandas metadata. NWB
@@ -530,6 +655,11 @@ def test_multiindex_survives_parquet_but_needs_remapping_for_nwb(tmp_path, nwb_r
 def test_unicode_text_values_survive_both_formats(tmp_path, nwb_roundtrip):
     """Round-trip accented, CJK, and empty text. Both formats preserve the text
     values; this check does not require identical pandas string dtypes.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS text values; dtype fidelity is not asserted.
+        NWB-HDF5: LOSSLESS text values; dtype fidelity is not asserted.
+        NWB-Zarr: LOSSLESS text values; dtype fidelity is not asserted.
 
     Why (specification versus adapter):
         Parquet STRING annotates UTF-8 BYTE_ARRAY. NWB text uses the backend string

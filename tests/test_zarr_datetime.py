@@ -12,6 +12,11 @@ from .helpers import open_raw_zarr, parquet_roundtrip, write_nwb
 def test_native_zarr_datetime_keeps_units_but_nwb_mapping_loses_them(tmp_path):
     """Given a nanosecond datetime DataFrame, compare native Zarr and NWB-Zarr.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS timestamps; native Python Zarr is also lossless with explicit units.
+        NWB-HDF5: NOT TESTED in this test.
+        NWB-Zarr: LOSSY METADATA: timestamp units lost despite schema validation; DataFrame recovery fails.
+
     Expected: native Zarr and Parquet retain timestamp units. NWB-Zarr validates
     generic datetime64: ticks survive but units are lost, so DataFrame recovery
     fails. Raw Zarr and NWB reader arrays agree despite that semantic loss.

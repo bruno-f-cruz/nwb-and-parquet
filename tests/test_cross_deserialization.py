@@ -11,6 +11,11 @@ def test_numeric_values_survive_conversion_nwb_then_parquet(tmp_path, nwb_roundt
     """Convert DataFrame through NWB, then PARQUET.
     Numeric float32 values and dtype survive both conversion steps.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS values/dtype at this step and across the full chain.
+        NWB-HDF5: LOSSLESS values/dtype at this step and across the full chain.
+        NWB-Zarr: LOSSLESS values/dtype at this step and across the full chain.
+
     Why (specification versus adapter):
         float32 maps to Parquet FLOAT and NWB typed VectorData. Both retain this
         payload; ids already named id avoid renaming. The second format cannot
@@ -33,6 +38,11 @@ def test_numeric_values_survive_conversion_nwb_then_parquet(tmp_path, nwb_roundt
 def test_numeric_values_survive_conversion_parquet_then_nwb(tmp_path, nwb_roundtrip):
     """Convert DataFrame through PARQUET, then NWB.
     Numeric float32 values and dtype survive both conversion steps.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS values/dtype at this step and across the full chain.
+        NWB-HDF5: LOSSLESS values/dtype at this step and across the full chain.
+        NWB-Zarr: LOSSLESS values/dtype at this step and across the full chain.
 
     Why (specification versus adapter):
         float32 maps to Parquet FLOAT and NWB typed VectorData. Both retain this
@@ -57,6 +67,11 @@ def test_parquet_cannot_restore_category_schema_lost_nwb_then_parquet(tmp_path, 
     """Convert DataFrame through NWB, then PARQUET.
     Labels survive, but categorical ordering and unused categories are lost
     at the NWB step and cannot be recovered by a subsequent Parquet write.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for its input frame; cannot restore category metadata discarded at the NWB step.
+        NWB-HDF5: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
+        NWB-Zarr: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
 
     Why (specification versus adapter):
         Plain NWB VectorData stores observed labels without ordered-category
@@ -84,6 +99,11 @@ def test_parquet_cannot_restore_category_schema_lost_parquet_then_nwb(tmp_path, 
     Labels survive, but categorical ordering and unused categories are lost
     at the final NWB step, despite being preserved by the first Parquet write.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS for its input frame; cannot restore category metadata discarded at the NWB step.
+        NWB-HDF5: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
+        NWB-Zarr: LOSSY METADATA: category dtype, ordering, and unused categories are lost; labels survive.
+
     Why (specification versus adapter):
         Plain NWB VectorData stores observed labels without ordered-category
         metadata or unused levels. Arrow preserves these at the first step, but
@@ -110,6 +130,11 @@ def test_ragged_values_survive_conversion_nwb_then_parquet(tmp_path, nwb_roundtr
     Ragged row values, including empty rows, survive both conversion steps.
     Python lists are recovered as NumPy arrays.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS row values; CONVENTION: list cells are recovered as NumPy arrays.
+        NWB-HDF5: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+        NWB-Zarr: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+
     Why (specification versus adapter):
         NWB VectorIndex endpoints and Parquet LIST nesting are distinct layouts.
         The DataFrame bridge reconstructs rows between writes, allowing values
@@ -134,6 +159,11 @@ def test_ragged_values_survive_conversion_parquet_then_nwb(tmp_path, nwb_roundtr
     Ragged row values, including empty rows, survive both conversion steps.
     Python lists are recovered as NumPy arrays.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS row values; CONVENTION: list cells are recovered as NumPy arrays.
+        NWB-HDF5: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+        NWB-Zarr: LOSSLESS row values; CONVENTION: flattened VectorData plus VectorIndex, recovered as arrays.
+
     Why (specification versus adapter):
         NWB VectorIndex endpoints and Parquet LIST nesting are distinct layouts.
         The DataFrame bridge reconstructs rows between writes, allowing values
@@ -157,6 +187,11 @@ def test_parquet_timestamp_still_needs_encoding_before_nwb(tmp_path):
     """Write a timestamp through Parquet before NWB. Parquet preserves it, but
     the subsequent NWB write still fails without an explicit datetime encoding.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS at the first timestamp round trip.
+        NWB-HDF5: UNSUPPORTED at the next write; the conversion chain does not complete.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         Restoring Parquet TIMESTAMP produces datetime64 again; it does not teach
         h5py to encode it. This chain targets HDF5; Zarr's native datetime payload
@@ -176,6 +211,11 @@ def test_parquet_timestamp_still_needs_encoding_before_nwb(tmp_path):
 def test_explicit_timestamp_integer_encoding_survives_but_requires_a_contract(tmp_path, nwb_roundtrip):
     """Encode datetime as integer nanoseconds, then pass through NWB and Parquet.
     Explicit decoding restores the source; generic readers only see integers.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS encoded integers; CONVENTION: explicit epoch/unit decoding restores timestamps.
+        NWB-HDF5: LOSSLESS encoded integers; CONVENTION: explicit epoch/unit decoding restores timestamps.
+        NWB-Zarr: LOSSLESS encoded integers; CONVENTION: explicit epoch/unit decoding restores timestamps.
 
     Why (specification versus adapter):
         Plain NWB integer columns do not imply an epoch or timestamp unit. Parquet

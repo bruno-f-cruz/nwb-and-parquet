@@ -16,6 +16,11 @@ def test_readers_cannot_cross_read_the_other_file_format(tmp_path):
     """Hand each file to the opposite reader. Parquet's magic bytes and NWB's
     HDF5 container differ; both readers reject the incompatible file.
 
+    Fidelity (this test and adapter):
+        Parquet: CONVENTION/INCOMPATIBILITY: Parquet reader cannot read the HDF5 container; not a lossy conversion.
+        NWB-HDF5: CONVENTION/INCOMPATIBILITY: HDF5 reader cannot read Parquet; not a lossy conversion.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         This specifically compares HDF5-backed NWB and Parquet framing/footer.
         NWB-Zarr needs another reader too; renaming files cannot convert containers.
@@ -41,6 +46,11 @@ def test_readers_cannot_cross_read_the_other_file_format(tmp_path):
 def test_hdmf_named_index_can_write_hdf5_that_fails_nwb_schema(tmp_path, nwb_roundtrip):
     """Use raw HDMF conversion with an index named trial. HDF5 writing succeeds
     but NWB validation fails because id is required; the normal adapter fixes it.
+
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: INVALID SCHEMA for raw trial-named ids; normal adapter preserves ids but loses their original name.
+        NWB-Zarr: LOSSY METADATA in the normal adapter: index name normalized to id; invalid raw Zarr write is not tested.
 
     Why (specification versus adapter):
         DynamicTable requires an id dataset. Raw from_dataframe uses the supplied
@@ -70,6 +80,11 @@ def test_nwb_has_session_context_parquet_does_not_infer_it(tmp_path):
     """Compare container context. The NWB adapter explicitly supplies session
     identity, start time, and table description; Parquet does not infer them.
 
+    Fidelity (this test and adapter):
+        Parquet: CONVENTION: no inferred NWB session context; none existed in the source, so this is not data loss.
+        NWB-HDF5: CONVENTION: adapter supplies NWB session context explicitly; context is recovered.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         NWBFile defines session description, identifier, and start time, which we
         explicitly supply rather than derive from cells. Parquet allows custom
@@ -96,6 +111,11 @@ def test_nwb_has_session_context_parquet_does_not_infer_it(tmp_path):
 def test_units_in_dataframe_attrs_need_explicit_nwb_mapping(tmp_path, nwb_roundtrip):
     """Compare units stored in DataFrame.attrs. Parquet preserves these attrs,
     the generic NWB table loses them, and an explicit TimeSeries mapping keeps units.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS unit attrs with this PyArrow metadata mapping.
+        NWB-HDF5: LOSSY METADATA in generic table; LOSSLESS units/values with explicit TimeSeries mapping.
+        NWB-Zarr: LOSSY METADATA in generic table; explicit Zarr TimeSeries is tested separately.
 
     Why (specification versus adapter):
         NWB TimeSeries specifies data units and seconds for timestamps. HDMF does
@@ -137,6 +157,11 @@ def test_equal_length_lists_have_different_nwb_schemas_with_same_values(tmp_path
     """Write equal-length lists to NWB with and without a ragged hint. Both are
     valid, but one stores a matrix and the other flattened values plus VectorIndex.
 
+    Fidelity (this test and adapter):
+        Parquet: NOT TESTED in this test.
+        NWB-HDF5: CONVENTION: matrix versus ragged schema; both preserve the asserted row values.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         VectorData allows trailing dimensions; VectorIndex instead supplies ragged
         row endpoints. The hint selects between two valid NWB representations.
@@ -166,6 +191,11 @@ def test_plain_integer_foreign_key_is_not_an_nwb_table_reference(tmp_path):
     """Round-trip an integer column named unit_id. Values survive, but neither
     its name nor dtype establishes a target table or an NWB object reference.
 
+    Fidelity (this test and adapter):
+        Parquet: LOSSLESS ids; CONVENTION: a column name does not create a relationship.
+        NWB-HDF5: CONVENTION: ordinary VectorData does not infer a target table; no supplied reference is lost.
+        NWB-Zarr: NOT TESTED in this test.
+
     Why (specification versus adapter):
         DynamicTableRegion includes a target table; VectorData does not. Neither
         an integer dtype nor the name unit_id creates a reference. Parquet plain
@@ -193,6 +223,11 @@ def test_plain_integer_foreign_key_is_not_an_nwb_table_reference(tmp_path):
 def test_explicit_nwb_reference_loses_target_semantics_in_plain_parquet(tmp_path):
     """Build an NWB table reference from two DataFrames, then export positions
     to Parquet. Positions survive; the linked target table and its ids do not.
+
+    Fidelity (this test and adapter):
+        Parquet: LOSSY SEMANTICS relative to the linked NWB object: export drops the target link before Parquet writing.
+        NWB-HDF5: LOSSLESS for the asserted target reference and row positions before export.
+        NWB-Zarr: NOT TESTED in this test.
 
     Why (specification versus adapter):
         DynamicTableRegion stores row positions plus a link to a target table.
