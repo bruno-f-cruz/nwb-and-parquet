@@ -1,0 +1,26 @@
+[project]
+name = "nwb-and-parquet"
+version = "0.1.0"
+description = "Executable DataFrame fidelity comparisons for NWB and Parquet"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>2",
+    "pandas",
+    "pyarrow",
+    "h5py",
+    "pynwb",
+    "hdmf",
+    "hdmf-zarr",
+    "zarr",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+cache-dir = ".uv-cache"
+required-version = ">=0.13"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
